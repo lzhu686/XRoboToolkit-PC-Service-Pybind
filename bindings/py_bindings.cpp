@@ -31,10 +31,10 @@ std::array<int64_t, 24> BodyJointsTimestamp;  // IMU timestamp for each joint
 int64_t BodyTimeStampNs = 0;  // Body data timestamp
 bool BodyDataAvailable = false;  // Flag to indicate if body data is available
 
-std::array<std::array<double, 7>, 3> MotionTrackerPose;  // Position and rotation for each joint
-std::array<std::array<double, 6>, 3> MotionTrackerVelocity;  // Velocity and angular velocity for each joint
-std::array<std::array<double, 6>, 3> MotionTrackerAcceleration;  // Acceleration and angular acceleration for each joint
-std::array<std::string, 3> MotionTrackerSerialNumbers;  // Serial numbers of the motion trackers
+std::array<std::array<double, 7>, 4> MotionTrackerPose;  // Position and rotation for each tracker (supports up to 4)
+std::array<std::array<double, 6>, 4> MotionTrackerVelocity;  // Velocity and angular velocity for each tracker
+std::array<std::array<double, 6>, 4> MotionTrackerAcceleration;  // Acceleration and angular acceleration for each tracker
+std::array<std::string, 4> MotionTrackerSerialNumbers;  // Serial numbers of the motion trackers
 int64_t MotionTimeStampNs = 0;  // Motion data timestamp
 int NumMotionDataAvailable = 0;  // number of motion trackers
 
@@ -233,7 +233,7 @@ void OnPXREAClientCallback(void* context, PXREAClientCallbackType type, int stat
                         }
                         if (motion.contains("joints") && motion["joints"].is_array()) {
                             auto joints = motion["joints"];
-                            NumMotionDataAvailable = std::min(static_cast<int>(joints.size()), 3);
+                            NumMotionDataAvailable = std::min(static_cast<int>(joints.size()), 4);  // Support up to 4 trackers
 
                             for (int i = 0; i < NumMotionDataAvailable; i++) {
                                 auto& joint = joints[i];
@@ -530,10 +530,10 @@ PYBIND11_MODULE(xrobotoolkit_sdk, m) {
     m.def("get_body_timestamp_ns", &getBodyTimeStampNs, "Get the body data timestamp in nanoseconds.");
 
     // Motion tracker functions
-    m.def("num_motion_data_available", &numMotionDataAvailable, "Check if motion tracker data is available.");
-    m.def("get_motion_tracker_pose", &getMotionTrackerPose, "Get the motion tracker pose data (3 trackers, 7 values each: x,y,z,qx,qy,qz,qw).");
-    m.def("get_motion_tracker_velocity", &getMotionTrackerVelocity, "Get the motion tracker velocity data (3 trackers, 6 values each: vx,vy,vz,wx,wy,wz).");
-    m.def("get_motion_tracker_acceleration", &getMotionTrackerAcceleration, "Get the motion tracker acceleration data (3 trackers, 6 values each: ax,ay,az,wax,way,waz).");
+    m.def("num_motion_data_available", &numMotionDataAvailable, "Get the number of motion trackers available (0-4).");
+    m.def("get_motion_tracker_pose", &getMotionTrackerPose, "Get the motion tracker pose data (up to 4 trackers, 7 values each: x,y,z,qx,qy,qz,qw).");
+    m.def("get_motion_tracker_velocity", &getMotionTrackerVelocity, "Get the motion tracker velocity data (up to 4 trackers, 6 values each: vx,vy,vz,wx,wy,wz).");
+    m.def("get_motion_tracker_acceleration", &getMotionTrackerAcceleration, "Get the motion tracker acceleration data (up to 4 trackers, 6 values each: ax,ay,az,wax,way,waz).");
     m.def("get_motion_tracker_serial_numbers", &getMotionTrackerSerialNumbers, "Get the serial numbers of the motion trackers.");
     m.def("get_motion_timestamp_ns", &getMotionTimeStampNs, "Get the motion data timestamp in nanoseconds.");
     
